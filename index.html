@@ -65,6 +65,7 @@
         .dealer {
             color: red;
             font-size: 1.2em;
+            margin-right: 5px;
         }
         .total-scores-container {
             margin-top: 20px;
@@ -72,6 +73,8 @@
             background-color: #f5f5f5;
             border-radius: 10px;
             border: 2px solid #333;
+            text-align: center;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -86,13 +89,14 @@
     <div id="game-screen" class="container hidden">
         <h1>Segnapunti Buraco</h1>
         <div id="team-names"></div>
+        <div id="total-scores" class="total-scores-container">
+            <h2>Punti Totali</h2>
+            <!-- Total scores will be dynamically inserted here -->
+        </div>
         <table>
             <thead>
                 <tr id="team-name-row">
                     <!-- Team names will be dynamically inserted here -->
-                </tr>
-                <tr id="total-score-row">
-                    <!-- Total scores will be dynamically inserted here -->
                 </tr>
             </thead>
             <tbody id="scoreTable">
@@ -131,13 +135,9 @@
                 }
 
                 const teamNameRow = document.getElementById('team-name-row');
-                teamNameRow.innerHTML = '<th>Round</th>';
-                const totalScoreRow = document.getElementById('total-score-row');
-                totalScoreRow.innerHTML = '<th>Punti Totali</th>';
-
+                teamNameRow.innerHTML = '<th></th>';
                 for (let i = 0; i < numTeams; i++) {
                     teamNameRow.innerHTML += `<th id="team${i + 1}-name">${teamName}</th>`;
-                    totalScoreRow.innerHTML += `<th id="totalScore${i}">${totalScores[i]}</th>`;
                 }
 
                 const scoreInputsDiv = document.getElementById('score-inputs');
@@ -175,15 +175,12 @@
             const teamNamesDiv = document.getElementById('team-names');
             teamNamesDiv.innerHTML = '';
             const teamNameRow = document.getElementById('team-name-row');
-            teamNameRow.innerHTML = '<th>Round</th>';
-            const totalScoreRow = document.getElementById('total-score-row');
-            totalScoreRow.innerHTML = '<th>Punti Totali</th>';
+            teamNameRow.innerHTML = '<th></th>';
             totalScores = [];
 
             for (let i = 0; i < numTeams; i++) {
                 teamNamesDiv.innerHTML += `<div><span id="dealer${i}" class="dealer">${i === currentDealer ? '★' : ''}</span><input type="text" id="teamName${i}" placeholder="Nome della squadra ${i + 1}"></div><br>`;
                 teamNameRow.innerHTML += `<th id="team${i + 1}-name">Nome della squadra ${i + 1}</th>`;
-                totalScoreRow.innerHTML += `<th id="totalScore${i}">0</th>`;
                 totalScores.push(0);
             }
 
@@ -254,11 +251,12 @@
         }
 
         function updateTotalScores() {
-            const totalScoresDiv = document.getElementById('total-score-row');
+            const totalScoresDiv = document.getElementById('total-scores');
+            totalScoresDiv.innerHTML = '<h2>Punti Totali</h2>';
             for (let i = 0; i < numTeams; i++) {
                 const teamName = document.getElementById(`teamName${i}`).value || `Squadra ${i + 1}`;
                 document.getElementById(`team${i + 1}-name`).textContent = teamName;
-                document.getElementById(`totalScore${i}`).textContent = totalScores[i];
+                totalScoresDiv.innerHTML += `<div>${teamName}: <span id="totalScore${i}"><strong>${totalScores[i]}</strong></span></div>`;
                 localStorage.setItem(`teamName${i}`, teamName);
                 localStorage.setItem(`totalScore${i}`, totalScores[i]);
             }
@@ -297,6 +295,7 @@
             document.getElementById('scoreTable').innerHTML = '';
             document.getElementById('team-names').innerHTML = '';
             document.getElementById('score-inputs').innerHTML = '';
+            document.getElementById('total-scores').innerHTML = '';
         }
 
         // Load game state when page loads
