@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,7 +33,7 @@
             text-align: center;
             border: 1px solid #ddd;
         }
-        input[type="number"] {
+        input[type="number"], input[type="text"] {
             width: 100%;
             padding: 5px;
             box-sizing: border-box;
@@ -51,56 +51,104 @@
         button:hover {
             background-color: #0056b3;
         }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div id="opening-screen" class="container">
+        <h1>Quante squadre?</h1>
+        <button onclick="startGame(1)">1</button>
+        <button onclick="startGame(2)">2</button>
+        <button onclick="startGame(3)">3</button>
+    </div>
+
+    <div id="game-screen" class="container hidden">
         <h1>Buraco Scorekeeper</h1>
+        <div id="team-names"></div>
         <table>
             <thead>
                 <tr>
                     <th>Round</th>
-                    <th>Player 1</th>
-                    <th>Player 2</th>
+                    <th>Punti Buraco</th>
+                    <th>Punti aggiuntivi</th>
                 </tr>
             </thead>
             <tbody id="scoreTable">
                 <!-- Scores will be dynamically inserted here -->
             </tbody>
         </table>
-        <div>
-            <input type="number" id="player1Score" placeholder="Player 1 Score">
-            <input type="number" id="player2Score" placeholder="Player 2 Score">
-            <button onclick="addScores()">Add Scores</button>
+        <div id="score-inputs">
+            <!-- Score inputs will be dynamically inserted here -->
         </div>
-        <h2>Total Scores</h2>
-        <p>Player 1: <span id="totalPlayer1">0</span></p>
-        <p>Player 2: <span id="totalPlayer2">0</span></p>
+        <button onclick="addScores()">Aggiungi Punti</button>
+        <h2>Punteggio Totale</h2>
+        <div id="total-scores"></div>
+        <button onclick="resetGame()">Inizia una nuova partita</button>
     </div>
 
     <script>
         let round = 1;
-        let totalPlayer1 = 0;
-        let totalPlayer2 = 0;
+        let totalScores = [];
+        let numTeams;
+
+        function startGame(teams) {
+            numTeams = teams;
+            document.getElementById('opening-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+
+            const teamNamesDiv = document.getElementById('team-names');
+            teamNamesDiv.innerHTML = '';
+            for (let i = 0; i < numTeams; i++) {
+                teamNamesDiv.innerHTML += `<input type="text" id="teamName${i}" placeholder="Nome della squadra ${i + 1}"><br>`;
+                totalScores.push(0);
+            }
+
+            const scoreInputsDiv = document.getElementById('score-inputs');
+            scoreInputsDiv.innerHTML = '';
+            for (let i = 0; i < numTeams; i++) {
+                scoreInputsDiv.innerHTML += `
+                    <input type="number" id="buracoPoints${i}" placeholder="Punti Buraco per squadra ${i + 1}">
+                    <input type="number" id="additionalPoints${i}" placeholder="Punti aggiuntivi per squadra ${i + 1}"><br>`;
+            }
+
+            updateTotalScores();
+        }
 
         function addScores() {
-            const player1Score = parseInt(document.getElementById('player1Score').value) || 0;
-            const player2Score = parseInt(document.getElementById('player2Score').value) || 0;
-
-            totalPlayer1 += player1Score;
-            totalPlayer2 += player2Score;
-
             const scoreTable = document.getElementById('scoreTable');
             const newRow = document.createElement('tr');
-            newRow.innerHTML = `<td>${round}</td><td>${player1Score}</td><td>${player2Score}</td>`;
+            newRow.innerHTML = `<td>${round}</td>`;
+            for (let i = 0; i < numTeams; i++) {
+                const buracoPoints = parseInt(document.getElementById(`buracoPoints${i}`).value) || 0;
+                const additionalPoints = parseInt(document.getElementById(`additionalPoints${i}`).value) || 0;
+                const totalPoints = buracoPoints + additionalPoints;
+
+                totalScores[i] += totalPoints;
+
+                newRow.innerHTML += `<td>${buracoPoints}</td><td>${additionalPoints}</td>`;
+                document.getElementById(`buracoPoints${i}`).value = '';
+                document.getElementById(`additionalPoints${i}`).value = '';
+            }
             scoreTable.appendChild(newRow);
-
-            document.getElementById('totalPlayer1').innerText = totalPlayer1;
-            document.getElementById('totalPlayer2').innerText = totalPlayer2;
-
             round++;
-            document.getElementById('player1Score').value = '';
-            document.getElementById('player2Score').value = '';
+            updateTotalScores();
+        }
+
+        function updateTotalScores() {
+            const totalScoresDiv = document.getElementById('total-scores');
+            totalScoresDiv.innerHTML = '';
+            for (let i = 0; i < numTeams; i++) {
+                totalScoresDiv.innerHTML += `Squadra ${i + 1} (${document.getElementById(`teamName${i}`).value}): <span id="totalScore${i}">${totalScores[i]}</span><br>`;
+            }
+        }
+
+        function resetGame() {
+            round = 1;
+            totalScores = [];
+            document.getElementById('opening-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('hidden');
         }
     </script>
 </body>
