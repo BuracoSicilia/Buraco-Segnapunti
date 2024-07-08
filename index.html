@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buraco Scorekeeper</title>
+    <title>Segnapunti Buraco</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -54,6 +54,10 @@
         .hidden {
             display: none;
         }
+        .dealer {
+            color: red;
+            font-size: 1.2em;
+        }
     </style>
 </head>
 <body>
@@ -65,7 +69,7 @@
     </div>
 
     <div id="game-screen" class="container hidden">
-        <h1>Buraco Scorekeeper</h1>
+        <h1>Segnapunti Buraco</h1>
         <div id="team-names"></div>
         <table>
             <thead>
@@ -92,6 +96,7 @@
         let round = 1;
         let totalScores = [];
         let numTeams;
+        let currentDealer = 0;
 
         // Load game state from localStorage
         function loadGameState() {
@@ -105,20 +110,23 @@
                 teamNamesDiv.innerHTML = '';
                 for (let i = 0; i < numTeams; i++) {
                     const teamName = localStorage.getItem(`teamName${i}`) || `Nome della squadra ${i + 1}`;
-                    teamNamesDiv.innerHTML += `<input type="text" id="teamName${i}" placeholder="${teamName}" value="${teamName}"><br>`;
+                    teamNamesDiv.innerHTML += `<div><input type="text" id="teamName${i}" placeholder="${teamName}" value="${teamName}"> <span id="dealer${i}" class="dealer">${i === currentDealer ? '★' : ''}</span></div><br>`;
                     totalScores.push(parseInt(localStorage.getItem(`totalScore${i}`)) || 0);
                 }
 
                 const scoreInputsDiv = document.getElementById('score-inputs');
-                scoreInputsDiv.innerHTML = '';
+                scoreInputsDiv.innerHTML = '<h3>Punti Buraco</h3>';
                 for (let i = 0; i < numTeams; i++) {
-                    scoreInputsDiv.innerHTML += `
-                        <input type="number" id="buracoPoints${i}" placeholder="Punti Buraco per squadra ${i + 1}">
-                        <input type="number" id="additionalPoints${i}" placeholder="Punti aggiuntivi per squadra ${i + 1}"><br>`;
+                    scoreInputsDiv.innerHTML += `<input type="number" id="buracoPoints${i}" placeholder="Punti Buraco per squadra ${i + 1}"><br>`;
+                }
+                scoreInputsDiv.innerHTML += '<h3>Punti aggiuntivi</h3>';
+                for (let i = 0; i < numTeams; i++) {
+                    scoreInputsDiv.innerHTML += `<input type="number" id="additionalPoints${i}" placeholder="Punti aggiuntivi per squadra ${i + 1}"><br>`;
                 }
 
-                // Load round and score table
+                // Load round, current dealer, and score table
                 round = parseInt(localStorage.getItem('round')) || 1;
+                currentDealer = parseInt(localStorage.getItem('currentDealer')) || 0;
                 const savedScores = JSON.parse(localStorage.getItem('scoreTable')) || [];
                 const scoreTable = document.getElementById('scoreTable');
                 scoreTable.innerHTML = '';
@@ -140,16 +148,18 @@
             const teamNamesDiv = document.getElementById('team-names');
             teamNamesDiv.innerHTML = '';
             for (let i = 0; i < numTeams; i++) {
-                teamNamesDiv.innerHTML += `<input type="text" id="teamName${i}" placeholder="Nome della squadra ${i + 1}"><br>`;
+                teamNamesDiv.innerHTML += `<div><input type="text" id="teamName${i}" placeholder="Nome della squadra ${i + 1}"> <span id="dealer${i}" class="dealer">${i === currentDealer ? '★' : ''}</span></div><br>`;
                 totalScores.push(0);
             }
 
             const scoreInputsDiv = document.getElementById('score-inputs');
-            scoreInputsDiv.innerHTML = '';
+            scoreInputsDiv.innerHTML = '<h3>Punti Buraco</h3>';
             for (let i = 0; i < numTeams; i++) {
-                scoreInputsDiv.innerHTML += `
-                    <input type="number" id="buracoPoints${i}" placeholder="Punti Buraco per squadra ${i + 1}">
-                    <input type="number" id="additionalPoints${i}" placeholder="Punti aggiuntivi per squadra ${i + 1}"><br>`;
+                scoreInputsDiv.innerHTML += `<input type="number" id="buracoPoints${i}" placeholder="Punti Buraco per squadra ${i + 1}"><br>`;
+            }
+            scoreInputsDiv.innerHTML += '<h3>Punti aggiuntivi</h3>';
+            for (let i = 0; i < numTeams; i++) {
+                scoreInputsDiv.innerHTML += `<input type="number" id="additionalPoints${i}" placeholder="Punti aggiuntivi per squadra ${i + 1}"><br>`;
             }
 
             saveGameState();
@@ -173,6 +183,7 @@
             }
             scoreTable.appendChild(newRow);
             round++;
+            currentDealer = (currentDealer + 1) % numTeams;
             saveGameState();
             updateTotalScores();
         }
@@ -186,11 +197,17 @@
                 localStorage.setItem(`teamName${i}`, teamName);
                 localStorage.setItem(`totalScore${i}`, totalScores[i]);
             }
+
+            // Update dealer symbol
+            for (let i = 0; i < numTeams; i++) {
+                document.getElementById(`dealer${i}`).innerHTML = (i === currentDealer) ? '★' : '';
+            }
         }
 
         function saveGameState() {
             localStorage.setItem('numTeams', numTeams);
             localStorage.setItem('round', round);
+            localStorage.setItem('currentDealer', currentDealer);
             const scoreTable = document.getElementById('scoreTable');
             const rows = Array.from(scoreTable.rows).map(row => row.innerHTML);
             localStorage.setItem('scoreTable', JSON.stringify(rows));
@@ -207,6 +224,7 @@
             localStorage.clear();
             round = 1;
             totalScores = [];
+            currentDealer = 0;
             document.getElementById('opening-screen').classList.remove('hidden');
             document.getElementById('game-screen').classList.add('hidden');
         }
