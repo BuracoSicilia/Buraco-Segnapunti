@@ -3,7 +3,7 @@ name: GitHub Pages Deployment
 on:
   push:
     branches:
-      - main  # Or your main branch name
+      - main  # Adjust according to your main branch name
 
 jobs:
   deploy:
@@ -11,12 +11,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  # Update to v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3  # Update to v3
         with:
-          node-version: '14'  # Ensure it matches your project's requirements
+          node-version: '20'  # Ensure it matches your project's requirements
 
       - name: Build and Deploy
         run: |
