@@ -66,6 +66,13 @@
             color: red;
             font-size: 1.2em;
         }
+        .total-scores-container {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            border: 2px solid #333;
+        }
     </style>
 </head>
 <body>
@@ -79,22 +86,16 @@
     <div id="game-screen" class="container hidden">
         <h1>Segnapunti Buraco</h1>
         <div id="team-names"></div>
-        <table>
+        <table id="score-table-container">
             <thead>
                 <tr>
                     <th>Round</th>
-                    <th colspan="2">Squadra 1</th>
-                    <th colspan="2">Squadra 2</th>
-                    <th colspan="2">Squadra 3</th>
-                </tr>
-                <tr>
-                    <th></th>
-                    <th>Punti Buraco</th>
-                    <th>Punti aggiuntivi</th>
-                    <th>Punti Buraco</th>
-                    <th>Punti aggiuntivi</th>
-                    <th>Punti Buraco</th>
-                    <th>Punti aggiuntivi</th>
+                    <th id="team1-buraco">Punti Buraco Squadra 1</th>
+                    <th id="team1-additional">Punti aggiuntivi Squadra 1</th>
+                    <th id="team2-buraco" class="hidden">Punti Buraco Squadra 2</th>
+                    <th id="team2-additional" class="hidden">Punti aggiuntivi Squadra 2</th>
+                    <th id="team3-buraco" class="hidden">Punti Buraco Squadra 3</th>
+                    <th id="team3-additional" class="hidden">Punti aggiuntivi Squadra 3</th>
                 </tr>
             </thead>
             <tbody id="scoreTable">
@@ -106,8 +107,10 @@
         </div>
         <button onclick="addScores()">Aggiungi Punti</button>
         <button onclick="undoLastRound()">Annulla Ultimo Round</button>
-        <h2>Punteggio Totale</h2>
-        <div id="total-scores"></div>
+        <div id="total-scores" class="total-scores-container">
+            <h2>Punteggio Totale</h2>
+            <!-- Total scores will be dynamically inserted here -->
+        </div>
         <button onclick="confirmReset()">Inizia una nuova partita</button>
     </div>
 
@@ -130,7 +133,7 @@
                 teamNamesDiv.innerHTML = '';
                 for (let i = 0; i < numTeams; i++) {
                     const teamName = localStorage.getItem(`teamName${i}`) || `Nome della squadra ${i + 1}`;
-                    teamNamesDiv.innerHTML += `<div><input type="text" id="teamName${i}" placeholder="${teamName}" value="${teamName}"> <span id="dealer${i}" class="dealer">${i === currentDealer ? '★' : ''}</span></div><br>`;
+                    teamNamesDiv.innerHTML += `<div><span id="dealer${i}" class="dealer">${i === currentDealer ? '★' : ''}</span><input type="text" id="teamName${i}" placeholder="${teamName}" value="${teamName}"></div><br>`;
                     totalScores.push(parseInt(localStorage.getItem(`totalScore${i}`)) || 0);
                 }
 
@@ -142,6 +145,12 @@
                 scoreInputsDiv.innerHTML += '<h3>Punti aggiuntivi</h3>';
                 for (let i = 0; i < numTeams; i++) {
                     scoreInputsDiv.innerHTML += `<input type="number" id="additionalPoints${i}" placeholder="Punti aggiuntivi per squadra ${i + 1}"><br>`;
+                }
+
+                // Show only relevant team columns
+                for (let i = 1; i <= 3; i++) {
+                    document.getElementById(`team${i}-buraco`).classList.toggle('hidden', i > numTeams);
+                    document.getElementById(`team${i}-additional`).classList.toggle('hidden', i > numTeams);
                 }
 
                 // Load round, current dealer, round history, and score table
@@ -169,7 +178,7 @@
             const teamNamesDiv = document.getElementById('team-names');
             teamNamesDiv.innerHTML = '';
             for (let i = 0; i < numTeams; i++) {
-                teamNamesDiv.innerHTML += `<div><input type="text" id="teamName${i}" placeholder="Nome della squadra ${i + 1}"> <span id="dealer${i}" class="dealer">${i === currentDealer ? '★' : ''}</span></div><br>`;
+                teamNamesDiv.innerHTML += `<div><span id="dealer${i}" class="dealer">${i === currentDealer ? '★' : ''}</span><input type="text" id="teamName${i}" placeholder="Nome della squadra ${i + 1}"></div><br>`;
                 totalScores.push(0);
             }
 
@@ -181,6 +190,12 @@
             scoreInputsDiv.innerHTML += '<h3>Punti aggiuntivi</h3>';
             for (let i = 0; i < numTeams; i++) {
                 scoreInputsDiv.innerHTML += `<input type="number" id="additionalPoints${i}" placeholder="Punti aggiuntivi per squadra ${i + 1}"><br>`;
+            }
+
+            // Show only relevant team columns
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`team${i}-buraco`).classList.toggle('hidden', i > numTeams);
+                document.getElementById(`team${i}-additional`).classList.toggle('hidden', i > numTeams);
             }
 
             saveGameState();
@@ -236,7 +251,7 @@
             totalScoresDiv.innerHTML = '';
             for (let i = 0; i < numTeams; i++) {
                 const teamName = document.getElementById(`teamName${i}`).value || `Squadra ${i + 1}`;
-                totalScoresDiv.innerHTML += `${teamName}: <span id="totalScore${i}">${totalScores[i]}</span><br>`;
+                totalScoresDiv.innerHTML += `<div>${teamName}: <span id="totalScore${i}"><strong>${totalScores[i]}</strong></span></div>`;
                 localStorage.setItem(`teamName${i}`, teamName);
                 localStorage.setItem(`totalScore${i}`, totalScores[i]);
             }
