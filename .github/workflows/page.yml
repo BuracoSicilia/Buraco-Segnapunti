@@ -1,25 +1,26 @@
-name: Deploy GitHub Pages
+name: GitHub Pages Deployment
 
 on:
   push:
     branches:
-      - main
+      - main  # Or your main branch name
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4  # Update to v4
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v2
         with:
-          node-version: '20'  # Update to a valid Node.js version, like '20'
+          node-version: '14'  # Ensure it matches your project's requirements
 
-      - name: Build and deploy
+      - name: Build and Deploy
         run: |
-          echo "Deploying to GitHub Pages..."
+          echo "Building and deploying to GitHub Pages..."
           mkdir -p public
           cp -r * public/
           touch public/.nojekyll
