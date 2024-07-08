@@ -85,13 +85,52 @@
         <button onclick="addScores()">Aggiungi Punti</button>
         <h2>Punteggio Totale</h2>
         <div id="total-scores"></div>
-        <button onclick="resetGame()">Inizia una nuova partita</button>
+        <button onclick="confirmReset()">Inizia una nuova partita</button>
     </div>
 
     <script>
         let round = 1;
         let totalScores = [];
         let numTeams;
+
+        // Load game state from localStorage
+        function loadGameState() {
+            const savedNumTeams = localStorage.getItem('numTeams');
+            if (savedNumTeams) {
+                numTeams = parseInt(savedNumTeams);
+                document.getElementById('opening-screen').classList.add('hidden');
+                document.getElementById('game-screen').classList.remove('hidden');
+
+                const teamNamesDiv = document.getElementById('team-names');
+                teamNamesDiv.innerHTML = '';
+                for (let i = 0; i < numTeams; i++) {
+                    const teamName = localStorage.getItem(`teamName${i}`) || `Nome della squadra ${i + 1}`;
+                    teamNamesDiv.innerHTML += `<input type="text" id="teamName${i}" placeholder="${teamName}" value="${teamName}"><br>`;
+                    totalScores.push(parseInt(localStorage.getItem(`totalScore${i}`)) || 0);
+                }
+
+                const scoreInputsDiv = document.getElementById('score-inputs');
+                scoreInputsDiv.innerHTML = '';
+                for (let i = 0; i < numTeams; i++) {
+                    scoreInputsDiv.innerHTML += `
+                        <input type="number" id="buracoPoints${i}" placeholder="Punti Buraco per squadra ${i + 1}">
+                        <input type="number" id="additionalPoints${i}" placeholder="Punti aggiuntivi per squadra ${i + 1}"><br>`;
+                }
+
+                // Load round and score table
+                round = parseInt(localStorage.getItem('round')) || 1;
+                const savedScores = JSON.parse(localStorage.getItem('scoreTable')) || [];
+                const scoreTable = document.getElementById('scoreTable');
+                scoreTable.innerHTML = '';
+                savedScores.forEach(row => {
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = row;
+                    scoreTable.appendChild(newRow);
+                });
+
+                updateTotalScores();
+            }
+        }
 
         function startGame(teams) {
             numTeams = teams;
@@ -113,6 +152,7 @@
                     <input type="number" id="additionalPoints${i}" placeholder="Punti aggiuntivi per squadra ${i + 1}"><br>`;
             }
 
+            saveGameState();
             updateTotalScores();
         }
 
@@ -133,6 +173,7 @@
             }
             scoreTable.appendChild(newRow);
             round++;
+            saveGameState();
             updateTotalScores();
         }
 
@@ -140,16 +181,38 @@
             const totalScoresDiv = document.getElementById('total-scores');
             totalScoresDiv.innerHTML = '';
             for (let i = 0; i < numTeams; i++) {
-                totalScoresDiv.innerHTML += `Squadra ${i + 1} (${document.getElementById(`teamName${i}`).value}): <span id="totalScore${i}">${totalScores[i]}</span><br>`;
+                const teamName = document.getElementById(`teamName${i}`).value || `Squadra ${i + 1}`;
+                totalScoresDiv.innerHTML += `${teamName}: <span id="totalScore${i}">${totalScores[i]}</span><br>`;
+                localStorage.setItem(`teamName${i}`, teamName);
+                localStorage.setItem(`totalScore${i}`, totalScores[i]);
+            }
+        }
+
+        function saveGameState() {
+            localStorage.setItem('numTeams', numTeams);
+            localStorage.setItem('round', round);
+            const scoreTable = document.getElementById('scoreTable');
+            const rows = Array.from(scoreTable.rows).map(row => row.innerHTML);
+            localStorage.setItem('scoreTable', JSON.stringify(rows));
+        }
+
+        function confirmReset() {
+            const confirmation = prompt('Vuoi iniziare una nuova partita? 1 per Sì, 2 per No');
+            if (confirmation === '1') {
+                resetGame();
             }
         }
 
         function resetGame() {
+            localStorage.clear();
             round = 1;
             totalScores = [];
             document.getElementById('opening-screen').classList.remove('hidden');
             document.getElementById('game-screen').classList.add('hidden');
         }
+
+        // Load game state when page loads
+        window.onload = loadGameState;
     </script>
 </body>
 </html>
