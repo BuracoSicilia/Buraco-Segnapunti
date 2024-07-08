@@ -86,16 +86,13 @@
     <div id="game-screen" class="container hidden">
         <h1>Segnapunti Buraco</h1>
         <div id="team-names"></div>
-        <table id="score-table-container">
+        <table>
             <thead>
-                <tr>
-                    <th>Round</th>
-                    <th id="team1-buraco">Punti Buraco Squadra 1</th>
-                    <th id="team1-additional">Punti aggiuntivi Squadra 1</th>
-                    <th id="team2-buraco" class="hidden">Punti Buraco Squadra 2</th>
-                    <th id="team2-additional" class="hidden">Punti aggiuntivi Squadra 2</th>
-                    <th id="team3-buraco" class="hidden">Punti Buraco Squadra 3</th>
-                    <th id="team3-additional" class="hidden">Punti aggiuntivi Squadra 3</th>
+                <tr id="team-name-row">
+                    <!-- Team names will be dynamically inserted here -->
+                </tr>
+                <tr id="total-score-row">
+                    <!-- Total scores will be dynamically inserted here -->
                 </tr>
             </thead>
             <tbody id="scoreTable">
@@ -107,10 +104,6 @@
         </div>
         <button onclick="addScores()">Aggiungi Punti</button>
         <button onclick="undoLastRound()">Annulla Ultimo Round</button>
-        <div id="total-scores" class="total-scores-container">
-            <h2>Punteggio Totale</h2>
-            <!-- Total scores will be dynamically inserted here -->
-        </div>
         <button onclick="confirmReset()">Inizia una nuova partita</button>
     </div>
 
@@ -137,6 +130,16 @@
                     totalScores.push(parseInt(localStorage.getItem(`totalScore${i}`)) || 0);
                 }
 
+                const teamNameRow = document.getElementById('team-name-row');
+                teamNameRow.innerHTML = '<th>Round</th>';
+                const totalScoreRow = document.getElementById('total-score-row');
+                totalScoreRow.innerHTML = '<th>Punti Totali</th>';
+
+                for (let i = 0; i < numTeams; i++) {
+                    teamNameRow.innerHTML += `<th id="team${i + 1}-name">${teamName}</th>`;
+                    totalScoreRow.innerHTML += `<th id="totalScore${i}">${totalScores[i]}</th>`;
+                }
+
                 const scoreInputsDiv = document.getElementById('score-inputs');
                 scoreInputsDiv.innerHTML = '<h3>Punti Buraco</h3>';
                 for (let i = 0; i < numTeams; i++) {
@@ -145,12 +148,6 @@
                 scoreInputsDiv.innerHTML += '<h3>Punti aggiuntivi</h3>';
                 for (let i = 0; i < numTeams; i++) {
                     scoreInputsDiv.innerHTML += `<input type="number" id="additionalPoints${i}" placeholder="Punti aggiuntivi per squadra ${i + 1}"><br>`;
-                }
-
-                // Show only relevant team columns
-                for (let i = 1; i <= 3; i++) {
-                    document.getElementById(`team${i}-buraco`).classList.toggle('hidden', i > numTeams);
-                    document.getElementById(`team${i}-additional`).classList.toggle('hidden', i > numTeams);
                 }
 
                 // Load round, current dealer, round history, and score table
@@ -177,8 +174,16 @@
 
             const teamNamesDiv = document.getElementById('team-names');
             teamNamesDiv.innerHTML = '';
+            const teamNameRow = document.getElementById('team-name-row');
+            teamNameRow.innerHTML = '<th>Round</th>';
+            const totalScoreRow = document.getElementById('total-score-row');
+            totalScoreRow.innerHTML = '<th>Punti Totali</th>';
+            totalScores = [];
+
             for (let i = 0; i < numTeams; i++) {
                 teamNamesDiv.innerHTML += `<div><span id="dealer${i}" class="dealer">${i === currentDealer ? '★' : ''}</span><input type="text" id="teamName${i}" placeholder="Nome della squadra ${i + 1}"></div><br>`;
+                teamNameRow.innerHTML += `<th id="team${i + 1}-name">Nome della squadra ${i + 1}</th>`;
+                totalScoreRow.innerHTML += `<th id="totalScore${i}">0</th>`;
                 totalScores.push(0);
             }
 
@@ -192,22 +197,20 @@
                 scoreInputsDiv.innerHTML += `<input type="number" id="additionalPoints${i}" placeholder="Punti aggiuntivi per squadra ${i + 1}"><br>`;
             }
 
-            // Show only relevant team columns
-            for (let i = 1; i <= 3; i++) {
-                document.getElementById(`team${i}-buraco`).classList.toggle('hidden', i > numTeams);
-                document.getElementById(`team${i}-additional`).classList.toggle('hidden', i > numTeams);
-            }
-
             saveGameState();
             updateTotalScores();
         }
 
         function addScores() {
             const scoreTable = document.getElementById('scoreTable');
-            const newRow = document.createElement('tr');
-            newRow.className = 'round-separator';
-            newRow.innerHTML = `<td>${round}</td>`;
+            const buracoRow = document.createElement('tr');
+            const additionalRow = document.createElement('tr');
+            buracoRow.className = 'round-separator';
+            additionalRow.className = 'round-separator';
+            buracoRow.innerHTML = `<td>Punti Buraco (Round ${round})</td>`;
+            additionalRow.innerHTML = `<td>Punti aggiuntivi (Round ${round})</td>`;
             const currentRoundScores = [];
+
             for (let i = 0; i < numTeams; i++) {
                 const buracoPoints = parseInt(document.getElementById(`buracoPoints${i}`).value) || 0;
                 const additionalPoints = parseInt(document.getElementById(`additionalPoints${i}`).value) || 0;
@@ -215,12 +218,15 @@
 
                 totalScores[i] += totalPoints;
 
-                newRow.innerHTML += `<td>${buracoPoints}</td><td>${additionalPoints}</td>`;
+                buracoRow.innerHTML += `<td>${buracoPoints}</td>`;
+                additionalRow.innerHTML += `<td>${additionalPoints}</td>`;
                 currentRoundScores.push({ buracoPoints, additionalPoints });
                 document.getElementById(`buracoPoints${i}`).value = '';
                 document.getElementById(`additionalPoints${i}`).value = '';
             }
-            scoreTable.appendChild(newRow);
+
+            scoreTable.appendChild(buracoRow);
+            scoreTable.appendChild(additionalRow);
             round++;
             currentDealer = (currentDealer + 1) % numTeams;
             roundHistory.push(currentRoundScores);
@@ -236,6 +242,7 @@
 
                 const scoreTable = document.getElementById('scoreTable');
                 scoreTable.deleteRow(scoreTable.rows.length - 1);
+                scoreTable.deleteRow(scoreTable.rows.length - 1);
 
                 for (let i = 0; i < numTeams; i++) {
                     totalScores[i] -= (lastRoundScores[i].buracoPoints + lastRoundScores[i].additionalPoints);
@@ -247,11 +254,11 @@
         }
 
         function updateTotalScores() {
-            const totalScoresDiv = document.getElementById('total-scores');
-            totalScoresDiv.innerHTML = '';
+            const totalScoresDiv = document.getElementById('total-score-row');
             for (let i = 0; i < numTeams; i++) {
                 const teamName = document.getElementById(`teamName${i}`).value || `Squadra ${i + 1}`;
-                totalScoresDiv.innerHTML += `<div>${teamName}: <span id="totalScore${i}"><strong>${totalScores[i]}</strong></span></div>`;
+                document.getElementById(`team${i + 1}-name`).textContent = teamName;
+                document.getElementById(`totalScore${i}`).textContent = totalScores[i];
                 localStorage.setItem(`teamName${i}`, teamName);
                 localStorage.setItem(`totalScore${i}`, totalScores[i]);
             }
@@ -288,7 +295,6 @@
             document.getElementById('opening-screen').classList.remove('hidden');
             document.getElementById('game-screen').classList.add('hidden');
             document.getElementById('scoreTable').innerHTML = '';
-            document.getElementById('total-scores').innerHTML = '';
             document.getElementById('team-names').innerHTML = '';
             document.getElementById('score-inputs').innerHTML = '';
         }
